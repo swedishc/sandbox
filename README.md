@@ -9,8 +9,7 @@ Practice optimal blackjack decisions in your browser. Make hit/stand choices, ma
 3. Choose **Hit** to draw a card or **Stand** to let the dealer play.
 4. Match the recommended action to gain training points; the strategy coach explains why each choice is correct for your hand.
 5. The round ends when someone busts, hits blackjack, or both stand. Start another round any time.
-6. Use the **Test** button in the top-right corner to autoplay 1,000 rounds with basic strategy and see the resulting player wi
-n rate.
+6. Use the **Test** button in the top-right corner to autoplay 10,000 rounds with basic strategy and see the win rate plus bankroll result using best-practice flat betting.
 
 No build steps or dependencies are required.
 
@@ -26,6 +25,7 @@ To try the game locally without any tooling, start a tiny static server and open
 1. From this folder, run `python -m http.server 8000`.
 2. Visit `http://localhost:8000` in your browser.
 3. Click **New Round**, then play a few **Hit** and **Stand** actions to confirm scoring and round-ending messages appear.
+4. Click **Test** to run the 10,000-hand strategy simulation. It begins with $1,000, bets the $20 minimum each hand (optimal when you don't have a counting edge), and reports the resulting win rate and ending bankroll.
 
 ## GitHub note
 All game files live at the repository root (`index.html`, `script.js`, `styles.css`, and this README). If you do not see them on GitHub, push the branch to your remote.

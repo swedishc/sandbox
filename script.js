@@ -327,7 +327,7 @@ function stand() {
   determineOutcome();
 }
 
-function simulateSingleRound() {
+function simulateSingleRound(betAmount = 20) {
   const simDeck = shuffleDeck(buildDeck());
   const simPlayer = [simDeck.pop(), simDeck.pop()];
   const simDealer = [simDeck.pop(), simDeck.pop()];
@@ -335,16 +335,16 @@ function simulateSingleRound() {
   const playerBlackjack = calculateScore(simPlayer) === 21 && simPlayer.length === 2;
   const dealerBlackjack = calculateScore(simDealer) === 21 && simDealer.length === 2;
 
-  if (playerBlackjack && dealerBlackjack) return "push";
-  if (playerBlackjack) return "win";
-  if (dealerBlackjack) return "loss";
+  if (playerBlackjack && dealerBlackjack) return { outcome: "push", profit: 0 };
+  if (playerBlackjack) return { outcome: "win", profit: betAmount * 1.5 };
+  if (dealerBlackjack) return { outcome: "loss", profit: -betAmount };
 
   let suggestion = recommendedAction(simPlayer, simDealer[0]);
 
   while (suggestion) {
     if (suggestion.action === "hit") {
       simPlayer.push(simDeck.pop());
-      if (calculateScore(simPlayer) > 21) return "loss";
+      if (calculateScore(simPlayer) > 21) return { outcome: "loss", profit: -betAmount };
       suggestion = recommendedAction(simPlayer, simDealer[0]);
       continue;
     }
@@ -356,33 +356,49 @@ function simulateSingleRound() {
     const playerScore = calculateScore(simPlayer);
     const dealerScore = calculateScore(simDealer);
 
-    if (dealerScore > 21) return "win";
-    if (playerScore > dealerScore) return "win";
-    if (playerScore < dealerScore) return "loss";
-    return "push";
+    if (dealerScore > 21) return { outcome: "win", profit: betAmount };
+    if (playerScore > dealerScore) return { outcome: "win", profit: betAmount };
+    if (playerScore < dealerScore) return { outcome: "loss", profit: -betAmount };
+    return { outcome: "push", profit: 0 };
   }
 
-  return "push";
+  return { outcome: "push", profit: 0 };
 }
 
-function runStrategyTest(rounds = 1000) {
+function runStrategyTest(rounds = 10000, startingBankroll = 1000, minBet = 20) {
   let wins = 0;
+  let bankroll = startingBankroll;
+
   for (let i = 0; i < rounds; i += 1) {
-    const outcome = simulateSingleRound();
+    const { outcome, profit } = simulateSingleRound(minBet);
+    bankroll += profit;
     if (outcome === "win") wins += 1;
   }
 
-  return ((wins / rounds) * 100).toFixed(1);
+  return {
+    winRate: ((wins / rounds) * 100).toFixed(1),
+    finalBankroll: bankroll,
+  };
+}
+
+function formatCurrency(amount) {
+  const formatted = Math.abs(amount).toFixed(2);
+  return `${amount < 0 ? "-" : ""}$${formatted}`;
 }
 
 function handleTestClick() {
+  const rounds = 10000;
+  const startingBankroll = 1000;
+  const minBet = 20;
+
   testButton.disabled = true;
-  statusMessage.textContent = "Running 1000 strategy rounds...";
+  statusMessage.textContent = `Running ${rounds.toLocaleString()} strategy rounds with $${startingBankroll} bankroll and $${minBet} bets...`;
 
   requestAnimationFrame(() => {
-    const winRate = runStrategyTest();
-    statusMessage.textContent = `Strategy test complete: ${winRate}% player win rate over 1000 rounds.`;
-    trainingResultEl.textContent = `Strategy autoplay win rate: ${winRate}% over 1000 rounds.`;
+    const { winRate, finalBankroll } = runStrategyTest(rounds, startingBankroll, minBet);
+    const bankrollText = formatCurrency(finalBankroll);
+    statusMessage.textContent = `Strategy test complete: ${winRate}% player win rate and bankroll ${bankrollText} after ${rounds.toLocaleString()} rounds.`;
+    trainingResultEl.textContent = `Autoplay: ${rounds.toLocaleString()} rounds at $${minBet}/hand from $${startingBankroll} → ${bankrollText} (win rate ${winRate}%).`;
     testButton.disabled = false;
   });
 }
