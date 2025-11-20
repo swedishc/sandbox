@@ -13,6 +13,7 @@ const statusMessage = document.getElementById("statusMessage");
 const hitButton = document.getElementById("hit");
 const standButton = document.getElementById("stand");
 const newRoundButton = document.getElementById("newRound");
+const testButton = document.getElementById("testStrategy");
 
 let deck = [];
 let playerHand = [];
@@ -326,9 +327,70 @@ function stand() {
   determineOutcome();
 }
 
+function simulateSingleRound() {
+  const simDeck = shuffleDeck(buildDeck());
+  const simPlayer = [simDeck.pop(), simDeck.pop()];
+  const simDealer = [simDeck.pop(), simDeck.pop()];
+
+  const playerBlackjack = calculateScore(simPlayer) === 21 && simPlayer.length === 2;
+  const dealerBlackjack = calculateScore(simDealer) === 21 && simDealer.length === 2;
+
+  if (playerBlackjack && dealerBlackjack) return "push";
+  if (playerBlackjack) return "win";
+  if (dealerBlackjack) return "loss";
+
+  let suggestion = recommendedAction(simPlayer, simDealer[0]);
+
+  while (suggestion) {
+    if (suggestion.action === "hit") {
+      simPlayer.push(simDeck.pop());
+      if (calculateScore(simPlayer) > 21) return "loss";
+      suggestion = recommendedAction(simPlayer, simDealer[0]);
+      continue;
+    }
+
+    while (calculateScore(simDealer) < 17) {
+      simDealer.push(simDeck.pop());
+    }
+
+    const playerScore = calculateScore(simPlayer);
+    const dealerScore = calculateScore(simDealer);
+
+    if (dealerScore > 21) return "win";
+    if (playerScore > dealerScore) return "win";
+    if (playerScore < dealerScore) return "loss";
+    return "push";
+  }
+
+  return "push";
+}
+
+function runStrategyTest(rounds = 1000) {
+  let wins = 0;
+  for (let i = 0; i < rounds; i += 1) {
+    const outcome = simulateSingleRound();
+    if (outcome === "win") wins += 1;
+  }
+
+  return ((wins / rounds) * 100).toFixed(1);
+}
+
+function handleTestClick() {
+  testButton.disabled = true;
+  statusMessage.textContent = "Running 1000 strategy rounds...";
+
+  requestAnimationFrame(() => {
+    const winRate = runStrategyTest();
+    statusMessage.textContent = `Strategy test complete: ${winRate}% player win rate over 1000 rounds.`;
+    trainingResultEl.textContent = `Strategy autoplay win rate: ${winRate}% over 1000 rounds.`;
+    testButton.disabled = false;
+  });
+}
+
 newRoundButton.addEventListener("click", startRound);
 hitButton.addEventListener("click", hit);
 standButton.addEventListener("click", stand);
+testButton.addEventListener("click", handleTestClick);
 
 // Start with a ready state
 updateDisplay({ revealDealer: false });

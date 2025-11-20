@@ -51,6 +51,12 @@ header {
   margin-bottom: 16px;
 }
 
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
 h1 {
   margin: 0;
   letter-spacing: 0.08em;
@@ -170,6 +176,20 @@ button {
   cursor: pointer;
   box-shadow: 0 8px 16px var(--shadow);
   transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: none;
+  padding: 10px 12px;
+}
+
+.ghost:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
+  filter: brightness(1.1);
 }
 
 button:hover:not(:disabled) {

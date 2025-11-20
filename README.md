@@ -9,6 +9,8 @@ Practice optimal blackjack decisions in your browser. Make hit/stand choices, ma
 3. Choose **Hit** to draw a card or **Stand** to let the dealer play.
 4. Match the recommended action to gain training points; the strategy coach explains why each choice is correct for your hand.
 5. The round ends when someone busts, hits blackjack, or both stand. Start another round any time.
+6. Use the **Test** button in the top-right corner to autoplay 1,000 rounds with basic strategy and see the resulting player wi
+n rate.
 
 No build steps or dependencies are required.
 
