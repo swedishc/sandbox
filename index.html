@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Browser Blackjack</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="table">
+    <header class="page-header">
+      <div>
+        <h1>Blackjack Trainer</h1>
+        <p class="subtitle">Match basic strategy to earn points and learn why each move works.</p>
+      </div>
+      <button id="testStrategy" class="ghost">Test</button>
+    </header>
+
+    <div class="layout">
+      <div class="play-area">
+        <section class="status">
+          <div class="message" id="statusMessage">Click "New Round" to begin.</div>
+          <div class="scoreboard">
+            <span>Player: <strong id="playerTotal">0</strong></span>
+            <span>Dealer: <strong id="dealerTotal">0</strong></span>
+            <span>Points: <strong id="trainingPoints">0</strong></span>
+          </div>
+        </section>
+
+        <section class="hands">
+          <div class="hand" aria-live="polite">
+            <h2>Dealer</h2>
+            <div class="cards" id="dealerCards"></div>
+          </div>
+          <div class="hand" aria-live="polite">
+            <h2>Player</h2>
+            <div class="cards" id="playerCards"></div>
+          </div>
+        </section>
+
+        <section class="controls">
+          <button id="newRound">New Round</button>
+          <div class="actions">
+            <button id="hit" disabled>Hit</button>
+            <button id="stand" disabled>Stand</button>
+          </div>
+        </section>
+      </div>
+
+      <aside class="trainer" aria-live="polite">
+        <h2>Strategy Coach</h2>
+        <p class="trainer-intro">Earn points by matching standard blackjack basic strategy. After every move, read why that choice is best for your hand.</p>
+        <div class="training-card">
+          <div class="label">Recommended action</div>
+          <div id="recommendedAction">Start a round to see coaching tips.</div>
+        </div>
+        <div class="training-card">
+          <div class="label">Why this works</div>
+          <div id="trainingReason">—</div>
+        </div>
+        <div class="training-card">
+          <div class="label">Your last choice</div>
+          <div id="trainingResult">No decisions yet.</div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
