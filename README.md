@@ -34,3 +34,10 @@ Once you are in the right folder (and `git status` works), push the current bran
 git remote add origin <your_repo_url>   # if not already set
 git push origin work                    # or your current branch name
 ```
+
+If you download the repo and only see an empty `README.md`, double-check you pulled the right branch and that the download finished completely:
+
+1. If using Git, run `git branch --show-current` and make sure you are on `work` (or the branch where the game was committed).
+2. Run `git fetch --all --prune` followed by `git checkout work` to switch to the branch with the files.
+3. Run `ls` in the repo root; you should see `index.html`, `script.js`, and `styles.css` alongside the README.
+4. If you downloaded a ZIP, try downloading again and confirm the ZIP extracts these files in the top-level folder.
