@@ -5,6 +5,10 @@ const dealerCards = document.getElementById("dealerCards");
 const playerCards = document.getElementById("playerCards");
 const playerTotalEl = document.getElementById("playerTotal");
 const dealerTotalEl = document.getElementById("dealerTotal");
+const trainingPointsEl = document.getElementById("trainingPoints");
+const recommendedActionEl = document.getElementById("recommendedAction");
+const trainingReasonEl = document.getElementById("trainingReason");
+const trainingResultEl = document.getElementById("trainingResult");
 const statusMessage = document.getElementById("statusMessage");
 const hitButton = document.getElementById("hit");
 const standButton = document.getElementById("stand");
@@ -14,6 +18,7 @@ let deck = [];
 let playerHand = [];
 let dealerHand = [];
 let roundOver = true;
+let trainingPoints = 0;
 
 function buildDeck() {
   const freshDeck = [];
@@ -40,7 +45,7 @@ function cardValue(card) {
   return Number(card.value);
 }
 
-function calculateScore(hand) {
+function scoreDetails(hand) {
   let total = 0;
   let aces = 0;
 
@@ -54,7 +59,99 @@ function calculateScore(hand) {
     aces -= 1;
   }
 
-  return total;
+  const soft = aces > 0;
+  return { total, soft };
+}
+
+function calculateScore(hand) {
+  return scoreDetails(hand).total;
+}
+
+function handLabel(hand) {
+  const { total, soft } = scoreDetails(hand);
+  if (!hand.length) return "";
+  return `${soft ? "Soft" : "Hard"} ${total}`;
+}
+
+function formatAction(action) {
+  return action === "hit" ? "Hit" : "Stand";
+}
+
+function recommendedAction(hand, dealerUpCard) {
+  if (!dealerUpCard || hand.length === 0) {
+    return null;
+  }
+
+  const dealerValue = cardValue(dealerUpCard);
+  const { total, soft } = scoreDetails(hand);
+
+  if (soft) {
+    if (total <= 17) {
+      return {
+        action: "hit",
+        reason: `${handLabel(hand)} is protected by an ace. Keep hitting until you reach at least 18.`,
+      };
+    }
+
+    if (total === 18) {
+      if (dealerValue >= 9 || dealerUpCard.value === "A") {
+        return {
+          action: "hit",
+          reason: "Soft 18 often loses to strong dealer upcards. Hit to improve while the ace prevents a bust.",
+        };
+      }
+
+      return {
+        action: "stand",
+        reason: "Soft 18 against a weak or medium dealer upcard is already competitive. Stand and make the dealer work.",
+      };
+    }
+
+    return {
+      action: "stand",
+      reason: `${handLabel(hand)} (soft 19 or better) should stand because you're already ahead of most dealer outcomes.`,
+    };
+  }
+
+  if (total <= 11) {
+    return {
+      action: "hit",
+      reason: `${handLabel(hand)} cannot bust with one more card. Hit to build toward 21.`,
+    };
+  }
+
+  if (total === 12) {
+    if (dealerValue >= 4 && dealerValue <= 6) {
+      return {
+        action: "stand",
+        reason: "Hard 12 versus a dealer 4-6 stands. The dealer is likely to bust, so let them draw first.",
+      };
+    }
+
+    return {
+      action: "hit",
+      reason: "Hard 12 against strong dealer cards should hit; standing often loses to 7, 8, 9, 10, or ace upcards.",
+    };
+  }
+
+  if (total >= 13 && total <= 16) {
+    if (dealerValue >= 2 && dealerValue <= 6) {
+      return {
+        action: "stand",
+        reason: `${handLabel(hand)} stands versus dealer 2-6 because the dealer is prone to busting while you risk busting if you hit.`,
+      };
+    }
+
+    return {
+      action: "hit",
+      reason: `${handLabel(hand)} should hit against dealer 7 or higher to avoid losing to a likely strong dealer total.`,
+    };
+  }
+
+  return {
+    action: "stand",
+    reason: `${handLabel(hand)} stands. At 17 or better you beat most dealer totals and risk busting if you hit.`,
+  };
 }
 
 function renderHand(target, hand) {
@@ -102,6 +199,7 @@ function endRound(message) {
   standButton.disabled = true;
   statusMessage.textContent = message;
   updateDisplay({ revealDealer: true });
+  recommendedActionEl.textContent = "Round finished. Start a new round to keep training.";
 }
 
 function checkForBlackjack() {
@@ -142,18 +240,57 @@ function startRound() {
   standButton.disabled = false;
   statusMessage.textContent = "Your move: hit or stand.";
   updateDisplay({ revealDealer: false });
+  trainingResultEl.textContent = "Choose Hit or Stand to earn points.";
+  setRecommendation();
   checkForBlackjack();
+}
+
+function updatePointsDisplay() {
+  trainingPointsEl.textContent = trainingPoints;
+}
+
+function setRecommendation() {
+  const suggestion = recommendedAction(playerHand, dealerHand[0]);
+  if (!suggestion) {
+    recommendedActionEl.textContent = "Start a round to see coaching tips.";
+    return;
+  }
+
+  const dealerLabel = dealerHand.length ? dealerHand[0].value : "?";
+  recommendedActionEl.textContent = `${formatAction(suggestion.action)} ${handLabel(playerHand)} versus dealer ${dealerLabel}.`;
+  trainingReasonEl.textContent = suggestion.reason;
+}
+
+function recordChoice(action, suggestion) {
+  if (!suggestion) return;
+
+  const isCorrect = suggestion.action === action;
+  if (isCorrect) {
+    trainingPoints += 10;
+    trainingResultEl.textContent = `You chose ${formatAction(action)} — correct! (+10 points)`;
+  } else {
+    trainingResultEl.textContent = `You chose ${formatAction(action)}. Basic strategy prefers ${formatAction(
+      suggestion.action
+    )}. No points awarded.`;
+  }
+
+  trainingReasonEl.textContent = suggestion.reason;
+  updatePointsDisplay();
 }
 
 function hit() {
   if (roundOver) return;
 
+  const suggestion = recommendedAction(playerHand, dealerHand[0]);
+  recordChoice("hit", suggestion);
   playerHand.push(deck.pop());
   const score = calculateScore(playerHand);
   updateDisplay({ revealDealer: false });
 
   if (score > 21) {
     endRound("Bust! Dealer wins.");
+  } else {
+    setRecommendation();
   }
 }
 
@@ -183,6 +320,8 @@ function determineOutcome() {
 
 function stand() {
   if (roundOver) return;
+  const suggestion = recommendedAction(playerHand, dealerHand[0]);
+  recordChoice("stand", suggestion);
   dealerTurn();
   determineOutcome();
 }
@@ -193,3 +332,4 @@ standButton.addEventListener("click", stand);
 
 // Start with a ready state
 updateDisplay({ revealDealer: false });
+updatePointsDisplay();

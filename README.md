@@ -1,15 +1,22 @@
-# Browser Blackjack
+# Browser Blackjack Trainer
 
-A lightweight, single-page blackjack game you can play directly in the browser. Hit, stand, and see if you can beat the dealer without busting.
+Practice optimal blackjack decisions in your browser. Make hit/stand choices, match basic strategy to earn points, and read coaching notes that explain why each move works.
 
 ## Playing
 
 1. Open `index.html` in your browser.
 2. Click **New Round** to deal cards.
 3. Choose **Hit** to draw a card or **Stand** to let the dealer play.
-4. The round ends when someone busts, hits blackjack, or both stand. Start another round any time.
+4. Match the recommended action to gain training points; the strategy coach explains why each choice is correct for your hand.
+5. The round ends when someone busts, hits blackjack, or both stand. Start another round any time.
 
 No build steps or dependencies are required.
+
+### Training specifics
+- The coach follows common blackjack basic strategy for hit/stand decisions (no splitting or doubling in this simplified trainer).
+- Each correct choice awards 10 points; incorrect choices give feedback but no points.
+- Soft totals (hands with an ace counted as 11) encourage hitting until at least 18, with extra aggression against high dealer upcards.
+- Hard totals follow standard rules: hit 11 and under, stand on 17+, stand 13–16 against dealer 2–6, and hit those totals against 7+.
 
 ## Local testing
 To try the game locally without any tooling, start a tiny static server and open it in your browser:
